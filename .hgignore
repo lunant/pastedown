@@ -2,5 +2,7 @@ syntax:glob
 vlaah
 jinja2
 beaker
+markdown2.py
+pastedown/vlaah_session.ini
 *.pyc
 *.swp

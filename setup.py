@@ -34,9 +34,17 @@ class download_libs(Command):
 
     def install_external_lib(self, name, url):
         path = os.path.dirname(__file__)
-        if os.path.isdir(os.path.join(path, name)):
+        file = url[-3:] == ".py"
+        if file and os.path.isfile(os.path.join(path, name + ".py")) or \
+           os.path.isdir(os.path.join(path, name)):
             return
         urlp = urllib2.urlopen(url)
+        if file:
+            f = open(name + ".py", "w")
+            f.write(urlp.read())
+            urlp.close()
+            f.close()
+            return
         file = StringIO.StringIO(urlp.read())
         urlp.close()
         archive = tarfile.open(fileobj=file)
