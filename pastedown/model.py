@@ -5,11 +5,17 @@ import vlaah.gae.db as vdb
 
 
 def vlaah_session(file=None):
+    """Creates a VLAAH session instance."""
     import ConfigParser
     from os.path import join, dirname
     conf = ConfigParser.ConfigParser()
     conf.read(file or join(dirname(__file__), "vlaah_session.ini"))
-    return vlaah.Session(**dict(conf.items("vlaah_session")))
+    try:
+        settings = conf.items("vlaah_session")
+    except ConfigParser.NoSectionError:
+        raise IOError("copy pastedown/vlaah_session.ini.dist to "
+                      "pastedown/vlaah_session.ini")
+    return vlaah.Session(**dict(settings))
 
 
 VLAAH = vlaah_session()
