@@ -1,0 +1,6 @@
+syntax:glob
+vlaah
+jinja2
+beaker
+*.pyc
+*.swp
