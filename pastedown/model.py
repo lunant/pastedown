@@ -39,12 +39,18 @@ class Document(db.Model):
     def create_key_name(cls, person=None, id=None):
         """Creates a new unique key_name for documents."""
         person_name = person.name + "/" if person else ""
-        if id:
+        if isinstance(id, basestring):
             return person_name + id
+        elif not callable(id) and id is not None:
+            raise TypeError("id must be callable or a string")
         min, max = cls.KEY_NAME_LENGTH_RANGE
-        for l in itertools.chain(xrange(min, max), itertools.repeat(max)):
+        lengths = itertools.chain(xrange(min, max), itertools.repeat(max))
+        if id:
+            lengths = itertools.chain([0], lengths)
+        for l in lengths:
             hash = hashlib.sha512(str(datetime.datetime.now()))
-            key_name = cls.create_key_name(person, hash.hexdigest()[:l])
+            hash = hash.hexdigest()[:l]
+            key_name = cls.create_key_name(person, id(hash) if id else hash)
             if not cls.get_by_key_name(key_name):
                 return key_name
 
@@ -62,7 +68,17 @@ class Document(db.Model):
         if "body" in kwargs:
             self._body_text = kwargs["body"]
         if "key_name" not in kwargs and "key" not in kwargs:
-            kwargs["key_name"] = self.create_key_name(kwargs["author"])
+            if "body" in kwargs:
+                html = MARKDOWN.convert(kwargs["body"])
+                title = create_title(html) or ""
+                title = title.replace(TITLE_ELLIPSIS, "").strip()
+                slug = re.sub(ur"\W+", ur"-", title).lower()
+                def id(name):
+                    return slug + "-" + name if name and slug else slug
+            else:
+                id = None
+            key_name = self.create_key_name(kwargs["author"], id)
+            kwargs["key_name"] = key_name
         db.Model.__init__(self, *args, **kwargs)
 
     @property
@@ -105,10 +121,6 @@ class Document(db.Model):
 class Revision(db.Model):
     """Document revisions."""
 
-    TITLE_PATTERN = re.compile(ur"<h1(\s[^>]*)?>\s*(?P<title>.+?)\s*</h1>")
-    FIRST_SENTENCE_PATTERN = re.compile(ur"^(?:[^?.]|\.[A-Z])+\??")
-    TITLE_MAX_LENGTH = 30
-    TITLE_ELLIPSIS = u"\u2026"
     UNTITLED = "(Untitled)"
 
     document = db.ReferenceProperty(Document, required=True,
@@ -123,29 +135,8 @@ class Revision(db.Model):
 
     @property
     def title(self):
-        """Title of the document. It is from its first <h1> text or its first
-        some text.
-
-        """
-        def strip_html(html):
-            html = re.sub(ur"<[^>]+>", u"", html)
-            map = htmlentitydefs.name2codepoint
-            return re.sub(
-                ur"&(?:#([0-9a-fA-F]+)|(\w+));",
-                lambda m: unichr(map[m.group(2)] if m.group(2)
-                                                 else int(m.group(1), 16)),
-                html
-            )
-        match = self.TITLE_PATTERN.search(self.html)
-        if match:
-            return strip_html(match.group("title")) or self.UNTITLED
-        text = strip_html(self.html)
-        match = self.FIRST_SENTENCE_PATTERN.match(text)
-        text = match.group(0) if match else text
-        if len(text) > self.TITLE_MAX_LENGTH:
-            length = self.TITLE_MAX_LENGTH - len(self.TITLE_ELLIPSIS)
-            text = text[0:length] + self.TITLE_ELLIPSIS
-        return text or self.UNTITLED
+        """Title of the document."""
+        return create_title(self.html) or self.UNTITLED
 
     def put(self):
         def put_it():
@@ -158,4 +149,36 @@ class Revision(db.Model):
 
     def __unicode__(self):
         return unicode(self.body) or u""
+
+
+TITLE_PATTERN = re.compile(ur"<h1(\s[^>]*)?>\s*(?P<title>.+?)\s*</h1>")
+FIRST_SENTENCE_PATTERN = re.compile(ur"^(?:[^?.]|\.[A-Z])+\??")
+TITLE_MAX_LENGTH = 30
+TITLE_ELLIPSIS = u"\u2026"
+
+
+def create_title(html):
+    """Title of the HTML document. It is from its first <h1> text or its first
+    some text.
+
+    """
+    def strip_html(html):
+        html = re.sub(ur"<[^>]+>", u"", html)
+        map = htmlentitydefs.name2codepoint
+        return re.sub(
+            ur"&(?:#([0-9a-fA-F]+)|(\w+));",
+            lambda m: unichr(map[m.group(2)] if m.group(2)
+                                             else int(m.group(1), 16)),
+            html
+        )
+    match = TITLE_PATTERN.search(html)
+    if match:
+        return strip_html(match.group("title")) or None
+    text = strip_html(html)
+    match = FIRST_SENTENCE_PATTERN.match(text)
+    text = match.group(0) if match else text
+    if len(text) > TITLE_MAX_LENGTH:
+        length = TITLE_MAX_LENGTH - len(TITLE_ELLIPSIS)
+        text = text[0:length] + TITLE_ELLIPSIS
+    return text or None
 

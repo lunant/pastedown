@@ -88,8 +88,7 @@ class HomeHandler(BaseHandler):
     def post(self):
         """Post a new document."""
         person = self.person
-        doc = Document(key_name=Document.create_key_name(person),
-                       author=self.person, body=self.request.get("body"))
+        doc = Document(author=self.person, body=self.request.get("body"))
         doc.put()
         self.redirect("/" + doc.key().name())
 
