@@ -80,10 +80,11 @@ class Document(db.Model):
 class Revision(db.Model):
     """Document revisions."""
 
-    TITLE_PATTERN = re.compile(ur"<h1(\s[^>]*)?>(?P<title>.+?)</h1>")
+    TITLE_PATTERN = re.compile(ur"<h1(\s[^>]*)?>\s*(?P<title>.+?)\s*</h1>")
     FIRST_SENTENCE_PATTERN = re.compile(ur"^(?:[^?.]|\.[A-Z])+\??")
     TITLE_MAX_LENGTH = 30
     TITLE_ELLIPSIS = u"\u2026"
+    UNTITLED = "(Untitled)"
 
     document = db.ReferenceProperty(Document, required=True,
                                     collection_name="revisions", indexed=True)
@@ -112,14 +113,14 @@ class Revision(db.Model):
             )
         match = self.TITLE_PATTERN.search(self.html)
         if match:
-            return strip_html(match.group("title"))
+            return strip_html(match.group("title")) or self.UNTITLED
         text = strip_html(self.html)
         match = self.FIRST_SENTENCE_PATTERN.match(text)
         text = match.group(0) if match else text
         if len(text) > self.TITLE_MAX_LENGTH:
             length = self.TITLE_MAX_LENGTH - len(self.TITLE_ELLIPSIS)
             text = text[0:length] + self.TITLE_ELLIPSIS
-        return text
+        return text or self.UNTITLED
 
     def put(self):
         def put_it():

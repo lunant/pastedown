@@ -141,7 +141,12 @@ class LoginHandler(BaseHandler):
 class DocumentHandler(BaseHandler):
 
     def get(self, key):
-        document = Document.get(db.Key(key))
+        try:
+            key = db.Key(key)
+        except db.BadKeyError:
+            self.error(404)
+            return
+        document = Document.get(key)
         self.response.out.write(document.html)
 
 
