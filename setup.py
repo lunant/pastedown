@@ -79,6 +79,6 @@ class download_libs(Command):
 setup(name="pastedown",
       packages=["pastedown"],
       package_dir={"pastedown": "pastedown"},
-      url="http://pastedown.appspot.com/",
+      url="http://pastedown.lunant.net/",
       cmdclass={"download_libs": download_libs})
 
