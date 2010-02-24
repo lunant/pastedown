@@ -24,15 +24,6 @@ VLAAH = vlaah_session()
 MARKDOWN = markdown2.Markdown(extras=["footnotes"])
 
 
-def strip_html(html):
-    html = re.sub(ur"<[^>]+>", u"", html)
-    map = htmlentitydefs.name2codepoint
-    return re.sub(ur"&(?:#([0-9a-fA-F]+)|(\w+));",
-                  lambda m: unichr(map[m.group(2)] if m.group(2)
-                                                   else int(m.group(1), 16)),
-                  html)
-
-
 class Document(db.Model):
     """Documents written in Markdown."""
 
@@ -90,6 +81,9 @@ class Revision(db.Model):
     """Document revisions."""
 
     TITLE_PATTERN = re.compile(ur"<h1(\s[^>]*)?>(?P<title>.+?)</h1>")
+    FIRST_SENTENCE_PATTERN = re.compile(ur"^(?:[^?.]|\.[A-Z])+\??")
+    TITLE_MAX_LENGTH = 30
+    TITLE_ELLIPSIS = u"\u2026"
 
     document = db.ReferenceProperty(Document, required=True,
                                     collection_name="revisions", indexed=True)
@@ -107,10 +101,25 @@ class Revision(db.Model):
         some text.
 
         """
+        def strip_html(html):
+            html = re.sub(ur"<[^>]+>", u"", html)
+            map = htmlentitydefs.name2codepoint
+            return re.sub(
+                ur"&(?:#([0-9a-fA-F]+)|(\w+));",
+                lambda m: unichr(map[m.group(2)] if m.group(2)
+                                                 else int(m.group(1), 16)),
+                html
+            )
         match = self.TITLE_PATTERN.search(self.html)
         if match:
             return strip_html(match.group("title"))
-        return strip_html(self.html)[:80]
+        text = strip_html(self.html)
+        match = self.FIRST_SENTENCE_PATTERN.match(text)
+        text = match.group(0) if match else text
+        if len(text) > self.TITLE_MAX_LENGTH:
+            length = self.TITLE_MAX_LENGTH - len(self.TITLE_ELLIPSIS)
+            text = text[0:length] + self.TITLE_ELLIPSIS
+        return text
 
     def put(self):
         def put_it():
