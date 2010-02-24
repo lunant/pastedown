@@ -29,8 +29,10 @@
       {% for document in documents %}
         {% if document.title %}
           <li><a href="/{{ document.key().name()|escape }}">
-            {{ document|escape }}
-          </a></li>
+                {{ document|escape }}</a>
+              {% if document.author %}
+                by {{ document.author.nick|escape }}
+              {% endif %}</li>
         {% endif %}
       {% endfor %}
     </ul>
