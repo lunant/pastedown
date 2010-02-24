@@ -44,6 +44,11 @@ class Document(db.Model):
         """Returns documents written by the author."""
         return cls.all().filter("author = ", author)
 
+    def __init__(self, *args, **kwargs):
+        if "body" in kwargs:
+            self._body_text = kwargs["body"]
+        db.Model.__init__(self, *args, **kwargs)
+
     @property
     def current_revision(self):
         """The current revision. None when there is no revision."""
@@ -69,6 +74,13 @@ class Document(db.Model):
     def title(self):
         body = self.current_revision
         return body and body.title
+
+    def put(self, skip_body=False):
+        key = db.Model.put(self)
+        if not skip_body and hasattr(self, "_body_text"):
+            self.body = self._body_text
+            del self._body_text
+        return key
 
     def __unicode__(self):
         return self.title or u""
@@ -104,7 +116,7 @@ class Revision(db.Model):
         def put_it():
             doc = self.document
             doc.updated_at = self.created_at
-            doc.put()
+            doc.put(True)
             db.Model.put(self)
         db.run_in_transaction(put_it)
         return self.key()

@@ -20,9 +20,8 @@ class HomeHandler(webapp.RequestHandler):
 
     def post(self):
         """Post a new document."""
-        doc = Document()
+        doc = Document(body=self.request.get("body"))
         doc.put()
-        doc.body = self.request.get("body")
         self.redirect("/" + str(doc.key()))
 
 
