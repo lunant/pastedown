@@ -87,9 +87,11 @@ class HomeHandler(BaseHandler):
 
     def post(self):
         """Post a new document."""
-        doc = Document(author=self.person, body=self.request.get("body"))
+        person = self.person
+        doc = Document(key_name=Document.create_key_name(person),
+                       author=self.person, body=self.request.get("body"))
         doc.put()
-        self.redirect("/" + str(doc.key()))
+        self.redirect("/" + doc.key().name())
 
 
 class LoginHandler(BaseHandler):
@@ -140,13 +142,16 @@ class LoginHandler(BaseHandler):
 
 class DocumentHandler(BaseHandler):
 
-    def get(self, key):
-        try:
-            key = db.Key(key)
-        except db.BadKeyError:
+    def get(self, person, id):
+        if person:
+            person = VLAAH.find("~" + person)
+            if not isinstance(person, vlaah.Person):
+                self.error(404)
+        else:
+            person = None
+        document = Document.find(person, id)
+        if not document:
             self.error(404)
-            return
-        document = Document.get(key)
         self.response.out.write(document.html)
 
 
@@ -154,7 +159,9 @@ application = beaker.middleware.SessionMiddleware(
     WSGIApplication([
         ("/", HomeHandler),
         ("/login/?", LoginHandler),
-        ("/(?P<key>[^~/][^/]{5,})", DocumentHandler)
+        ("/(?P<person>)(?P<id>[^~/][^/]{5,})", DocumentHandler),
+        ("/(?:%7[Ee]|~)(?P<person>[-_.a-z0-9]{3,32})/(?P<id>[^/]{6,})",
+         DocumentHandler),
     ], debug=True),
     BEAKER_SESSION_OPTIONS
 )

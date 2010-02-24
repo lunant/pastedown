@@ -1,4 +1,7 @@
 import re
+import datetime
+import itertools
+import hashlib
 import htmlentitydefs
 from google.appengine.ext import db
 import markdown2
@@ -27,17 +30,39 @@ MARKDOWN = markdown2.Markdown(extras=["footnotes"])
 class Document(db.Model):
     """Documents written in Markdown."""
 
+    KEY_NAME_LENGTH_RANGE = 6, 128
+
     author = vdb.PersonProperty(VLAAH, indexed=True)
     updated_at = db.DateTimeProperty(auto_now=True)
+
+    @classmethod
+    def create_key_name(cls, person=None, id=None):
+        """Creates a new unique key_name for documents."""
+        person_name = person.name + "/" if person else ""
+        if id:
+            return person_name + id
+        min, max = cls.KEY_NAME_LENGTH_RANGE
+        for l in itertools.chain(xrange(min, max), itertools.repeat(max)):
+            hash = hashlib.sha512(str(datetime.datetime.now()))
+            key_name = cls.create_key_name(person, hash.hexdigest()[:l])
+            if not cls.get_by_key_name(key_name):
+                return key_name
 
     @classmethod
     def get_by_author(cls, author):
         """Returns documents written by the author."""
         return cls.all().filter("author = ", author)
 
+    @classmethod
+    def find(cls, author, id):
+        key_name = cls.create_key_name(author, id)
+        return cls.get_by_key_name(key_name)
+
     def __init__(self, *args, **kwargs):
         if "body" in kwargs:
             self._body_text = kwargs["body"]
+        if "key_name" not in kwargs and "key" not in kwargs:
+            kwargs["key_name"] = self.create_key_name(kwargs["author"])
         db.Model.__init__(self, *args, **kwargs)
 
     @property

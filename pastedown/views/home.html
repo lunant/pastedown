@@ -28,7 +28,9 @@
     <ul>
       {% for document in documents %}
         {% if document.title %}
-          <li><a href="/{{ document.key() }}">{{ document|escape }}</a></li>
+          <li><a href="/{{ document.key().name()|escape }}">
+            {{ document|escape }}
+          </a></li>
         {% endif %}
       {% endfor %}
     </ul>
