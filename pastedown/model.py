@@ -68,7 +68,7 @@ class Document(db.Model):
         if "body" in kwargs:
             self._body_text = kwargs["body"]
         if "key_name" not in kwargs and "key" not in kwargs:
-            if "body" in kwargs:
+            if "body" in kwargs and "author" in kwargs and kwargs["author"]:
                 html = MARKDOWN.convert(kwargs["body"])
                 title = create_title(html) or ""
                 title = title.replace(TITLE_ELLIPSIS, "").strip()
