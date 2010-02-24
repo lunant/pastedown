@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Pastedown &mdash;
+           the pastebin service for Markdown documents.</title>
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+    google.load('jquery', '1.4.2');
+    </script>
+  </head>
+  <body>
+    {% block body %}
+      <h1>Pastedown</h1>
+      <p>The pastebin service for Markdown documents.</p>
+      {% block content %}
+      {% endblock %}
+      <p class="copyright">
+        Copyright &copy; 2010 <a href="http://lunant.net/">Lunant</a>.
+        <a href="http://bitbucket.org/lunant/pastedown/">
+          The source code is available</a> under
+        <a href="http://www.gnu.org/licenses/agpl-3.0.html">AGPL</a>.
+      </p>
+    {% endblock %}
+    <script type="text/javascript">
+    // <![CDATA[
+    $.each(['put', 'delete'], function() {
+      html = '<input type="hidden" name="__method__" value="' + this + '" />';
+      $('form[method=' + this + ']').each(function() {
+        this.method = 'post';
+      }).append(html);
+    });
+    // ]]>
+    </script>
+  </body>
+</html>
