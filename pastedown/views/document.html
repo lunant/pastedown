@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+  <article>{{ revision.html }}</article>
+  <aside>
+    {% if document.revisions.count(2) > 1 %}
+      <ul class="history">
+        {% for rev in document.revisions.order('-created_at'): %}
+          <li>{{ rev.created_at }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if document.author and document.author.normal_name==person.normal_name %}
+      <form method="put" action="" class="update">
+        <fieldset>
+          <legend>Update the document</legend>
+          <textarea name="body" rows="10" cols="80">
+            {{- revision.body|escape -}}
+          </textarea>
+          <button type="submit">Update</button>
+        </fieldset>
+      </form>
+    {% endif %}
+  </aside>
+{% endblock %}

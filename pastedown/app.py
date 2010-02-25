@@ -164,7 +164,8 @@ class DocumentHandler(BaseHandler):
 
     def put(self, person, id):
         document = self.find_document(person, id)
-        if document.author is None or document.author != self.person:
+        if document.author is None or \
+           document.author.normal_name != self.person.normal_name:
             self.error(403)
             self.render("document.not_updatable.html",
                         document=document, revision=document.current_revision)
