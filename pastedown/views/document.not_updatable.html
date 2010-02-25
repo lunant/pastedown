@@ -1,0 +1,10 @@
+{% extends "document.html" %}
+{% block content %}
+  <p class="error">
+    The document <q>{{ document.title|escape }}</q> is written by
+    {% if document.author == None %} anonymous, so cannot be updated.
+    {% else %} {{ document.author.nick|escape }}, not you. No permission.
+    {% endif %}
+  </p>
+  {{ super() }}
+{% endblock %}

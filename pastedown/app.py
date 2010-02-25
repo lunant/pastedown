@@ -141,7 +141,11 @@ class LoginHandler(BaseHandler):
 
 class DocumentHandler(BaseHandler):
 
-    def get(self, person, id):
+    def find_document(self, person, id):
+        """Finds the document. Responds as 404 when the document is not
+        found.
+
+        """
         if person:
             person = VLAAH.find("~" + person)
             if not isinstance(person, vlaah.Person):
@@ -151,7 +155,22 @@ class DocumentHandler(BaseHandler):
         document = Document.find(person, id)
         if not document:
             self.error(404)
-        self.response.out.write(document.html)
+        return document
+
+    def get(self, person, id, document=None):
+        document = document or self.find_document(person, id)
+        self.render("document.html",
+                    document=document, revision=document.current_revision)
+
+    def put(self, person, id):
+        document = self.find_document(person, id)
+        if document.author is None or document.author != self.person:
+            self.error(403)
+            self.render("document.not_updatable.html",
+                        document=document, revision=document.current_revision)
+            return
+        document.body = self.request.get("body")
+        self.get(person, id, document)
 
 
 application = beaker.middleware.SessionMiddleware(
