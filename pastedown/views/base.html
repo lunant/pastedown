@@ -8,13 +8,19 @@
     <script type="text/javascript">
     google.load('jquery', '1.4.2');
     </script>
+    <style type="text/css">
+    header { display: block; text-indent: -9999px; height: 90px;
+             background: url(/etc/images/logo.png) no-repeat; }
+    </style>
   </head>
   <body>
     {% block body %}
-      <h1>Pastedown</h1>
-      <p>The pastebin service for
-         <a href="http://daringfireball.net/projects/markdown/">Markdown</a>
-         documents.</p>
+      <header>
+        <h1>Pastedown</h1>
+        <p>The pastebin service for
+           <a href="http://daringfireball.net/projects/markdown/">Markdown</a>
+           documents.</p>
+      </header>
       {% block content %}
       {% endblock %}
       <p class="copyright">

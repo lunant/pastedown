@@ -4,5 +4,7 @@ runtime: python
 api_version: 1
 
 handlers:
+- url: /etc/images
+  static_dir: pastedown/views/images
 - url: .*
   script: main.py
