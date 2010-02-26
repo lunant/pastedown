@@ -34,12 +34,10 @@
     {% endblock %}
     <script type="text/javascript">
     // <![CDATA[
-    $.each(['put', 'delete'], function() {
-      html = '<input type="hidden" name="__method__" value="' + this + '" />';
-      $('form[method=' + this + ']').each(function() {
-        this.method = 'post';
-      }).append(html);
-    });
+    $('form[method=put], form[method=delete]').append(function() {
+      var attr = this.getAttribute('method');
+      return '<input type="hidden" name="__method__" value="' + attr + '" />';
+    }).attr('method', 'post');
     // ]]>
     </script>
   </body>
