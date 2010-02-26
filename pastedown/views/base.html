@@ -2,8 +2,10 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Pastedown &mdash;
-           the pastebin service for Markdown documents.</title>
+    <title>{% block title -%}
+             Pastedown &mdash;
+             the pastebin service for Markdown documents.
+           {%- endblock %}</title>
     <script type="text/javascript" src="http://www.google.com/jsapi"></script>
     <script type="text/javascript">
     google.load('jquery', '1.4.2');
