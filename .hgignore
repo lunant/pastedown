@@ -4,5 +4,6 @@ jinja2
 beaker
 markdown2.py
 pastedown/vlaah_session.ini
+.DS_Store
 *.pyc
 *.swp

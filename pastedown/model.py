@@ -1,7 +1,7 @@
 import re
 import datetime
 import itertools
-import hashlib
+import uuid
 import htmlentitydefs
 from google.appengine.ext import db
 import markdown2
@@ -30,7 +30,7 @@ MARKDOWN = markdown2.Markdown(extras=["footnotes"])
 class Document(db.Model):
     """Documents written in Markdown."""
 
-    KEY_NAME_LENGTH_RANGE = 6, 128
+    KEY_NAME_LENGTH_RANGE = 6, 32
 
     author = vdb.PersonProperty(VLAAH, indexed=True)
     updated_at = db.DateTimeProperty(auto_now=True)
@@ -48,9 +48,15 @@ class Document(db.Model):
         if id:
             lengths = itertools.chain([0], lengths)
         for l in lengths:
-            hash = hashlib.sha512(str(datetime.datetime.now()))
-            hash = hash.hexdigest()[:l]
-            key_name = cls.create_key_name(person, id(hash) if id else hash)
+            now = datetime.datetime.now()
+            now = str(now.microsecond) + now.strftime("%Y%m%d%H%M%S")
+            logging.info(now[:16])
+            uniqid = uuid.UUID(bytes=now[:16])
+            uniqid = uniqid.hex[:l]
+            key_name = id(uniqid) if id else hash
+            if key_name == "":
+                continue
+            key_name = cls.create_key_name(person, key_name)
             if not cls.get_by_key_name(key_name):
                 return key_name
 
@@ -71,9 +77,12 @@ class Document(db.Model):
             if "body" in kwargs and "author" in kwargs and kwargs["author"]:
                 html = MARKDOWN.convert(kwargs["body"])
                 title = create_title(html) or ""
-                title = title.replace(TITLE_ELLIPSIS, "").strip()
-                slug = re.sub(ur"\W+", ur"-", title).lower()
+                title = title.replace(TITLE_ELLIPSIS, "")
+                slug = re.sub(ur"\W+", ur"-",
+                              re.sub(ur"^\W+|\W+$", ur"", title)).lower()
                 def id(name):
+                    if not slug:
+                        return name
                     return slug + "-" + name if name and slug else slug
             else:
                 id = None
