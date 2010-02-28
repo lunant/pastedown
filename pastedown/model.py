@@ -50,7 +50,6 @@ class Document(db.Model):
         for l in lengths:
             now = datetime.datetime.now()
             now = str(now.microsecond) + now.strftime("%Y%m%d%H%M%S")
-            logging.info(now[:16])
             uniqid = uuid.UUID(bytes=now[:16])
             uniqid = uniqid.hex[:l]
             key_name = id(uniqid) if id else hash
