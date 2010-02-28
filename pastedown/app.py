@@ -139,6 +139,17 @@ class LoginHandler(BaseHandler):
         self.redirect(back)
 
 
+class PersonHandler(BaseHandler):
+
+    def get(self, person):
+        author = VLAAH.find("~" + person)
+        if not isinstance(author, vlaah.Person):
+            self.error(404)
+            return
+        documents = Document.get_by_author(author)
+        self.render("person.html", author=author, documents=documents)
+
+
 class DocumentHandler(BaseHandler):
 
     def find_document(self, person, id):
@@ -150,11 +161,13 @@ class DocumentHandler(BaseHandler):
             person = VLAAH.find("~" + person)
             if not isinstance(person, vlaah.Person):
                 self.error(404)
+                return
         else:
             person = None
         document = Document.find(person, id)
         if not document:
             self.error(404)
+            return
         return document
 
     def get(self, person, id, document=None):
@@ -178,6 +191,7 @@ application = beaker.middleware.SessionMiddleware(
     WSGIApplication([
         ("/", HomeHandler),
         ("/login/?", LoginHandler),
+        ("/(?:%7[Ee]|~)(?P<person>[-_.a-z0-9]{3,32})/?", PersonHandler),
         ("/(?P<person>)(?P<id>[^~/][^/]{5,})", DocumentHandler),
         ("/(?:%7[Ee]|~)(?P<person>[-_.a-z0-9]{3,32})/(?P<id>[^/]{6,})",
          DocumentHandler),

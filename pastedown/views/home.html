@@ -31,7 +31,8 @@
           <li><a href="/{{ document.key().name()|escape }}">
                 {{ document|escape }}</a>
               {% if document.author %}
-                by {{ document.author.nick|escape }}
+                by <a href="/{{ document.author.name }}">
+                     {{- document.author.nick|escape -}}</a>
               {% endif %}</li>
         {% endif %}
       {% endfor %}

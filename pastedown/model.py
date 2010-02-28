@@ -62,7 +62,10 @@ class Document(db.Model):
     @classmethod
     def get_by_author(cls, author):
         """Returns documents written by the author."""
-        return cls.all().filter("author = ", author)
+        if isinstance(author, vlaah.Person):
+            return cls.all().filter("author = ", author.name)
+        typename = type(author).__name__
+        raise TypeError("author must be a Person instance, not " + typename)
 
     @classmethod
     def find(cls, author, id):
