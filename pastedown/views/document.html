@@ -12,7 +12,7 @@
         {% endfor %}
       </ul>
     {% endif %}
-    {% if document.author and document.author.normal_name==person.normal_name %}
+    {% if document.is_modifiable(person) %}
       <form method="put" action="" class="update">
         <fieldset>
           <legend>Update the document</legend>
@@ -20,6 +20,12 @@
             {{- revision.body|escape -}}
           </textarea>
           <button type="submit">Update</button>
+        </fieldset>
+      </form>
+      <form method="delete" action="" class="delete">
+        <fieldset>
+          <legend>Delete the document</legend>
+          <button type="submit">Delete</button>
         </fieldset>
       </form>
     {% endif %}

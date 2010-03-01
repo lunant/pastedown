@@ -170,6 +170,14 @@ class DocumentHandler(BaseHandler):
             return
         return document
 
+    def assert_modifiability(self, document):
+        if not document.is_modifiable(self.person):
+            self.error(403)
+            self.render("document.not_modifiable.html",
+                        document=document, revision=document.current_revision)
+            return False
+        return True
+
     def get(self, person, id, document=None):
         document = document or self.find_document(person, id)
         self.render("document.html",
@@ -177,14 +185,17 @@ class DocumentHandler(BaseHandler):
 
     def put(self, person, id):
         document = self.find_document(person, id)
-        if document.author is None or \
-           document.author.normal_name != self.person.normal_name:
-            self.error(403)
-            self.render("document.not_updatable.html",
-                        document=document, revision=document.current_revision)
+        if not self.assert_modifiability(document):
             return
         document.body = self.request.get("body")
         self.get(person, id, document)
+
+    def delete(self, person, id):
+        document = self.find_document(person, id)
+        if not self.assert_modifiability(document):
+            return
+        document.delete()
+        self.redirect("/~%s/" % person)
 
 
 application = beaker.middleware.SessionMiddleware(

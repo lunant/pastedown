@@ -1,7 +1,7 @@
 import re
 import datetime
 import itertools
-import uuid
+import hashlib
 import htmlentitydefs
 from google.appengine.ext import db
 import markdown2
@@ -42,17 +42,16 @@ class Document(db.Model):
         if isinstance(id, basestring):
             return person_name + id
         elif not callable(id) and id is not None:
-            raise TypeError("id must be callable or a string")
+            raise TypeError("id must be callable or a string; %s given"
+                            % type(id).__name__)
         min, max = cls.KEY_NAME_LENGTH_RANGE
         lengths = itertools.chain(xrange(min, max), itertools.repeat(max))
         if id:
             lengths = itertools.chain([0], lengths)
         for l in lengths:
-            now = datetime.datetime.now()
-            now = str(now.microsecond) + now.strftime("%Y%m%d%H%M%S")
-            uniqid = uuid.UUID(bytes=now[:16])
-            uniqid = uniqid.hex[:l]
-            key_name = id(uniqid) if id else hash
+            hash = hashlib.sha512(str(datetime.datetime.now()))
+            hash = hash.hexdigest()[:l]
+            key_name = id(hash) if id else hash
             if key_name == "":
                 continue
             key_name = cls.create_key_name(person, key_name)
@@ -117,6 +116,17 @@ class Document(db.Model):
     def title(self):
         body = self.current_revision
         return body and body.title
+
+    def is_modifiable(self, person):
+        """Returns True when the document is modifiable by the person."""
+        if isinstance(person, vlaah.Person):
+            if self.author is None:
+                return False
+            return self.author.normal_name == person.normal_name
+        elif person is None:
+            return False
+        typ = type(person).__name__
+        raise TypeError("person must be a vlaah.Person instance, not " + typ)
 
     def put(self, skip_body=False):
         key = db.Model.put(self)
