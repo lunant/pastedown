@@ -32,6 +32,7 @@ class Document(db.Model):
 
     KEY_NAME_LENGTH_RANGE = 6, 32
 
+    protodoc = db.SelfReferenceProperty(collection_name="forks")
     author = vdb.PersonProperty(VLAAH, indexed=True)
     updated_at = db.DateTimeProperty(auto_now=True)
 
@@ -74,6 +75,8 @@ class Document(db.Model):
     def __init__(self, *args, **kwargs):
         if "body" in kwargs:
             self._body_text = kwargs["body"]
+        if "protodoc" in kwargs and kwargs["protodoc"] is not None:
+            kwargs["parent"] = kwargs["protodoc"]
         if "key_name" not in kwargs and "key" not in kwargs:
             if "body" in kwargs and "author" in kwargs and kwargs["author"]:
                 html = MARKDOWN.convert(kwargs["body"])
