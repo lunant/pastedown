@@ -107,8 +107,8 @@ class Document(db.Model):
     @property
     def current_revision(self):
         """The current revision. None when there is no revision."""
-        # TODO: revisions
-        return self.overriding_revisions.order("-created_at").get()
+        for rev in self.revisions:
+            return rev
 
     def body(self):
         """Body string of the document's current revision."""
