@@ -6,5 +6,7 @@ api_version: 1
 handlers:
 - url: /etc/images
   static_dir: pastedown/views/images
+- url: /etc/wmd
+  static_dir: pastedown/views/wmd
 - url: .*
   script: main.py

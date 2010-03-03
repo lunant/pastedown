@@ -40,7 +40,14 @@
       var attr = this.getAttribute('method');
       return '<input type="hidden" name="__method__" value="' + attr + '" />';
     }).attr('method', 'post');
+    wmd_options = {
+      output: 'Markdown',
+      lineLength: 80,
+      buttons: 'bold italic | link blockquote code image | ol ul heading hr',
+      autostart: true
+    };
     // ]]>
     </script>
+    <script type="text/javascript" src="/etc/wmd/wmd.js"></script>
   </body>
 </html>
