@@ -32,7 +32,8 @@ class Document(db.Model):
 
     KEY_NAME_LENGTH_RANGE = 6, 32
 
-    protodoc = db.SelfReferenceProperty(collection_name="forks")
+    parent_document = db.SelfReferenceProperty(collection_name="forks")
+    parent_revision = db.ReferenceProperty()
     author = vdb.PersonProperty(VLAAH, indexed=True)
     updated_at = db.DateTimeProperty(auto_now=True)
 
@@ -73,31 +74,41 @@ class Document(db.Model):
         return cls.get_by_key_name(key_name)
 
     def __init__(self, *args, **kwargs):
-        if "body" in kwargs:
-            self._body_text = kwargs["body"]
-        if "protodoc" in kwargs and kwargs["protodoc"] is not None:
-            kwargs["parent"] = kwargs["protodoc"]
-        if "key_name" not in kwargs and "key" not in kwargs:
-            if "body" in kwargs and "author" in kwargs and kwargs["author"]:
-                html = MARKDOWN.convert(kwargs["body"])
-                title = create_title(html) or ""
-                title = title.replace(TITLE_ELLIPSIS, "")
-                slug = re.sub(ur"\W+", ur"-",
-                              re.sub(ur"^\W+|\W+$", ur"", title)).lower()
-                def id(name):
-                    if not slug:
-                        return name
-                    return slug + "-" + name if name and slug else slug
-            else:
-                id = None
-            key_name = self.create_key_name(kwargs["author"], id)
-            kwargs["key_name"] = key_name
+        if not kwargs.get("_from_entity", False):
+            if "body" in kwargs:
+                self._body_text = kwargs["body"]
+            if "parent_document" in kwargs and kwargs["parent_document"]:
+                parent_document = kwargs["parent_document"]
+                kwargs["parent_revision"] = parent_document.current_revision
+            elif "parent_revision" in kwargs and kwargs["parent_revision"]:
+                kwargs["parent_document"] = kwargs["parent_revision"].document
+            if "key_name" not in kwargs and "key" not in kwargs:
+                if "body" in kwargs and "author" in kwargs and kwargs["author"]:
+                    html = MARKDOWN.convert(kwargs["body"])
+                    title = create_title(html) or ""
+                    title = title.replace(TITLE_ELLIPSIS, "")
+                    slug = re.sub(ur"\W+", ur"-",
+                                  re.sub(ur"^\W+|\W+$", ur"", title)).lower()
+                    def id(name):
+                        if not slug:
+                            return name
+                        return slug + "-" + name if name and slug else slug
+                else:
+                    id = None
+                key_name = self.create_key_name(kwargs["author"], id)
+                kwargs["key_name"] = key_name
         db.Model.__init__(self, *args, **kwargs)
+
+    @property
+    def revisions(self):
+        """Returns the set of revisions."""
+        return RevisionSet(self)
 
     @property
     def current_revision(self):
         """The current revision. None when there is no revision."""
-        return self.revisions.order("-created_at").get()
+        # TODO: revisions
+        return self.overriding_revisions.order("-created_at").get()
 
     def body(self):
         """Body string of the document's current revision."""
@@ -117,6 +128,7 @@ class Document(db.Model):
 
     @property
     def title(self):
+        """The title picked from its current first sentence or <h1>."""
         body = self.current_revision
         return body and body.title
 
@@ -130,6 +142,15 @@ class Document(db.Model):
             return False
         typ = type(person).__name__
         raise TypeError("person must be a vlaah.Person instance, not " + typ)
+
+    def fork(self, author, body):
+        """Fork the document."""
+        if author is not None and not isinstance(author, vlaah.Person):
+            raise TypeError("author must be a vlaah.Person instance, not "
+                            + type(author).__name__)
+        elif not isinstance(body, basestring):
+            raise TypeError("body is not a string, but " + type(body).__name__)
+        return type(self)(parent_document=self, author=author, body=body)
 
     def put(self, skip_body=False):
         key = db.Model.put(self)
@@ -148,9 +169,15 @@ class Revision(db.Model):
     UNTITLED = "(Untitled)"
 
     document = db.ReferenceProperty(Document, required=True,
-                                    collection_name="revisions", indexed=True)
+                                    collection_name="overriding_revisions",
+                                    indexed=True)
     body = db.TextProperty(required=True)
     created_at = db.DateTimeProperty(required=True, auto_now_add=True)
+
+    @property
+    def author(self):
+        """Returns the author."""
+        return (self.parent() or self.document).author
 
     @property
     def html(self):
@@ -161,6 +188,20 @@ class Revision(db.Model):
     def title(self):
         """Title of the document."""
         return create_title(self.html) or self.UNTITLED
+
+    def fork(self, author, body):
+        """Forks the document from this revision."""
+        if author is not None and not isinstance(author, vlaah.Person):
+            raise TypeError("author must be a vlaah.Person instance, not "
+                            + type(author).__name__)
+        elif not isinstance(body, basestring):
+            raise TypeError("body is not a string, but " + type(body).__name__)
+        return Document(parent_revision=self, author=author, body=body)
+
+    @property
+    def forks(self):
+        """Returns forked documents."""
+        return Document.all().filter("parent_revision =", self)
 
     def put(self):
         def put_it():
@@ -173,6 +214,58 @@ class Revision(db.Model):
 
     def __unicode__(self):
         return unicode(self.body) or u""
+
+
+class RevisionSet(object):
+    """The set of revisions."""
+
+    def __init__(self, document):
+        if not isinstance(document, Document):
+            typename = type(document).__name__
+            raise TypeError("expected a Document instance, not " + typename)
+        self.document = document
+
+    def query_hierarchy(self):
+        document = self.document
+        before = None
+        while document:
+            revisions = document.overriding_revisions
+            if before:
+                revisions = revisions.filter("created_at <=", before)
+            yield revisions.order("-created_at")
+            revision = document.parent_revision
+            document = document.parent_document
+            if document and revision:
+                before = revision.created_at
+
+    def count(self, limit=None):
+        """Returns the number of revisions in the set."""
+        cnt = 0
+        if limit is not None and limit <= 0:
+            return 0
+        for revision_set in self.query_hierarchy():
+            cnt += revision_set.count(limit or 1000)
+            if limit is not None and limit - cnt <= 0:
+                return cnt
+        return cnt
+
+    def __getitem__(self, created_at):
+        """Finds the revision by the created time."""
+        if not isinstance(created_at, (datetime.datetime, datetime.date)):
+            raise KeyError("key value must be a datetime.datetime instance, "
+                           "not " + type(created_at).__name__)
+        for revision_set in self.query_hierarchy():
+            for revision in revision_set.filter("created_at =", created_at):
+                return revision
+        raise KeyError("no revision created at %r" % created_at)
+
+    def __iter__(self):
+        for revision_set in self.query_hierarchy():
+            for revision in revision_set:
+                yield revision
+
+    def __len__(self):
+        return self.count()
 
 
 TITLE_PATTERN = re.compile(ur"<h1(\s[^>]*)?>\s*(?P<title>.+?)\s*</h1>")

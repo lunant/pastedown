@@ -5,10 +5,22 @@
 {% block content %}
   <article>{{ revision.html }}</article>
   <aside>
+    {% if document.parent_document %}
+      <p>It forks <a href="/{{ document.parent_document.key().name() }}">
+         {{ document.parent_revision.title }}</a>.</p>
+    {% endif %}
+    {% if document.forks.count(1) %}
+      <ul class="forks">
+        {% for fork in document.forks %}
+          <li><a href="/{{ fork.key().name() }}">{{ fork.title }}</a></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
     {% if document.revisions.count(2) > 1 %}
       <ul class="history">
-        {% for rev in document.revisions.order('-created_at'): %}
-          <li>{{ rev.created_at }}</li>
+        {% for rev in document.revisions: %}
+          <li>{{ rev.created_at }} by <a href="/{{ rev.author.name }}">
+              {{ rev.author.nick|escape }}</a></li>
         {% endfor %}
       </ul>
     {% endif %}
@@ -29,5 +41,14 @@
         </fieldset>
       </form>
     {% endif %}
+    <form method="post" action="" class="fork">
+      <fieldset>
+        <legend>Fork the document</legend>
+        <textarea name="body" rows="10" cols="80">
+          {{- revision.body|escape -}}
+        </textarea>
+        <button type="submit">Fork</button>
+      </fieldset>
+    </form>
   </aside>
 {% endblock %}

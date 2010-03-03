@@ -180,19 +180,29 @@ class DocumentHandler(BaseHandler):
 
     def get(self, person, id, document=None):
         document = document or self.find_document(person, id)
-        self.render("document.html",
-                    document=document, revision=document.current_revision)
+        if document:
+            self.render("document.html",
+                        document=document, revision=document.current_revision)
 
     def put(self, person, id):
         document = self.find_document(person, id)
-        if not self.assert_modifiability(document):
+        if not (document and self.assert_modifiability(document)):
             return
         document.body = self.request.get("body")
         self.get(person, id, document)
 
+    def post(self, person, id):
+        document = self.find_document(person, id)
+        if not document:
+            return
+        body = self.request.get("body")
+        doc = document.fork(author=self.person, body=body)
+        doc.put()
+        self.redirect("/" + doc.key().name())
+
     def delete(self, person, id):
         document = self.find_document(person, id)
-        if not self.assert_modifiability(document):
+        if not (document and self.assert_modifiability(document)):
             return
         document.delete()
         self.redirect("/~%s/" % person)
@@ -204,7 +214,7 @@ application = beaker.middleware.SessionMiddleware(
         ("/login/?", LoginHandler),
         ("/(?:%7[Ee]|~)(?P<person>[-_.a-z0-9]{3,32})/?", PersonHandler),
         ("/(?P<person>)(?P<id>[^~/][^/]{5,})", DocumentHandler),
-        ("/(?:%7[Ee]|~)(?P<person>[-_.a-z0-9]{3,32})/(?P<id>[^/]{6,})",
+        ("/(?:%7[Ee]|~)(?P<person>[-_.a-z0-9]{3,32})/(?P<id>[^/]+)",
          DocumentHandler),
     ], debug=True),
     BEAKER_SESSION_OPTIONS
