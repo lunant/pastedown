@@ -257,12 +257,13 @@ class RevisionSet(object):
                     return revision
             raise KeyError("no revision created at %r" % key)
         elif isinstance(key, (int, long)):
-            if key >= 0:
-                for revision_set in self.query_hierarchy():
-                    cnt = revision_set.count(key + 1)
-                    if cnt > key:
-                        return revision_set.fetch(1, key)[0]
-                    key -= cnt
+            if key < 0:
+                cnt = self.count() + key
+            for revision_set in self.query_hierarchy():
+                cnt = revision_set.count(key + 1)
+                if cnt > key:
+                    return revision_set.fetch(1, key)[0]
+                key -= cnt
             raise IndexError("set index out of range %r" % key)
         raise TypeError("key must be a datetime.date, datetime.datetime, "
                         "int or long instance, not " + type(key).__name__)
