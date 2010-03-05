@@ -249,15 +249,23 @@ class RevisionSet(object):
                 return cnt
         return cnt
 
-    def __getitem__(self, created_at):
-        """Finds the revision by the created time."""
-        if not isinstance(created_at, (datetime.datetime, datetime.date)):
-            raise KeyError("key value must be a datetime.datetime instance, "
-                           "not " + type(created_at).__name__)
-        for revision_set in self.query_hierarchy():
-            for revision in revision_set.filter("created_at =", created_at):
-                return revision
-        raise KeyError("no revision created at %r" % created_at)
+    def __getitem__(self, key):
+        """Finds the revision by the created time or the offset number."""
+        if isinstance(key, (datetime.datetime, datetime.date)):
+            for revision_set in self.query_hierarchy():
+                for revision in revision_set.filter("created_at =", key):
+                    return revision
+            raise KeyError("no revision created at %r" % key)
+        elif isinstance(key, (int, long)):
+            if key >= 0:
+                for revision_set in self.query_hierarchy():
+                    cnt = revision_set.count(key + 1)
+                    if cnt > key:
+                        return revision_set.fetch(1, key)[0]
+                    key -= cnt
+            raise IndexError("set index out of range %r" % key)
+        raise TypeError("key must be a datetime.date, datetime.datetime, "
+                        "int or long instance, not " + type(key).__name__)
 
     def __iter__(self):
         for revision_set in self.query_hierarchy():
