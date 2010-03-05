@@ -28,10 +28,10 @@
     <ul>
       {% for document in documents %}
         {% if document.title %}
-          <li><a href="/{{ document.key().name()|escape }}">
+          <li><a href="{{ document|url|escape }}">
                 {{ document|escape }}</a>
               {% if document.author %}
-                by <a href="/{{ document.author.name }}">
+                by <a href="{{ document.author|url }}">
                      {{- document.author.nick|escape -}}</a>
               {% endif %}</li>
         {% endif %}

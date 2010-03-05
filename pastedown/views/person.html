@@ -7,7 +7,7 @@
     <h2>{{ author.nick|escape }} (<code>{{ author.name|escape }}</code>)</h2>
     <ul class="documents">
       {% for doc in documents %}
-        <li><a href="/{{ doc.key().name()|escape }}">{{ doc|escape }}</a></li>
+        <li><a href="{{ doc|url|escape }}">{{ doc|escape }}</a></li>
       {% endfor %}
     </ul>
   </div>

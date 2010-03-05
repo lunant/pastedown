@@ -6,26 +6,27 @@
   <article>{{ revision.html }}</article>
   <aside>
     {% if document.parent_document %}
-      <p>It forks <a href="/{{ document.parent_document.key().name() }}">
+      <p>It forks <a href="{{ document.parent_document|url|escape }}">
          {{ document.parent_revision.title }}</a>.</p>
     {% endif %}
     {% if document.forks.count(1) %}
       <ul class="forks">
         {% for fork in document.forks %}
-          <li><a href="/{{ fork.key().name() }}">{{ fork.title }}</a></li>
+          <li><a href="{{ fork|url|escape }}">{{ fork.title }}</a></li>
         {% endfor %}
       </ul>
     {% endif %}
     {% if document.revisions.count(2) > 1 %}
       <ul class="history">
         {% for rev in document.revisions: %}
-          <li>{{ rev.created_at }} by <a href="/{{ rev.author.name }}">
+          <li><a href="{{ rev|url|escape }}">{{ rev.created_at }}</a>
+              by <a href="{{ rev.author|url|escape }}">
               {{ rev.author.nick|escape }}</a></li>
         {% endfor %}
       </ul>
     {% endif %}
     {% if document.is_modifiable(person) %}
-      <form method="put" action="" class="update">
+      <form method="put" action="{{ document|url|escape }}" class="update">
         <fieldset>
           <legend>Update the document</legend>
           <textarea name="body" rows="10" cols="80">
@@ -34,7 +35,7 @@
           <button type="submit">Update</button>
         </fieldset>
       </form>
-      <form method="delete" action="" class="delete">
+      <form method="delete" action="{{ document|url|escape }}" class="delete">
         <fieldset>
           <legend>Delete the document</legend>
           <button type="submit">Delete</button>

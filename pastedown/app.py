@@ -1,4 +1,3 @@
-import os.path
 import datetime
 import hashlib
 import urllib
@@ -9,11 +8,8 @@ import jinja2
 import vlaah
 from pastedown.model import *
 from pastedown.appext import WSGIApplication
+from pastedown.template import ENVIRONMENT as VIEW_ENV
 
-
-VIEW_PATH = os.path.join(os.path.dirname(__file__), "views")
-VIEW_LOADER = jinja2.FileSystemLoader(VIEW_PATH)
-VIEW_ENV = jinja2.Environment(loader=VIEW_LOADER)
 
 BEAKER_SESSION_OPTIONS = {
     "session.type": "ext:google",
@@ -151,6 +147,8 @@ class PersonHandler(BaseHandler):
 
 
 class DocumentHandler(BaseHandler):
+    REVISION_PATTERN = re.compile(r"^(\d{4})/(\d\d)/(\d\d)/"
+                                  r"(\d\d)(\d\d)(\d\d)\.(\d+)$")
 
     def find_document(self, person, id):
         """Finds the document. Responds as 404 when the document is not
@@ -170,6 +168,17 @@ class DocumentHandler(BaseHandler):
             return
         return document
 
+    def find_revision(self, document, revision):
+        if revision:
+            if not isinstance(revision, Revision):
+                if not isinstance(revision, datetime.datetime):
+                    revision = self.REVISION_PATTERN.match(revision)
+                    revision = datetime.datetime(*map(int, revision.groups()))
+                revision = document.revisions[revision]
+        else:
+            revision = document.current_revision
+        return revision
+
     def assert_modifiability(self, document):
         if not document.is_modifiable(self.person):
             self.error(403)
@@ -178,25 +187,27 @@ class DocumentHandler(BaseHandler):
             return False
         return True
 
-    def get(self, person, id, document=None):
+    def get(self, person, id, revision=None, document=None):
         document = document or self.find_document(person, id)
+        revision = self.find_revision(document, revision)
         if document:
             self.render("document.html",
-                        document=document, revision=document.current_revision)
+                        document=document, revision=revision)
 
     def put(self, person, id):
         document = self.find_document(person, id)
         if not (document and self.assert_modifiability(document)):
             return
         document.body = self.request.get("body")
-        self.get(person, id, document)
+        self.get(person, id, document=document)
 
-    def post(self, person, id):
+    def post(self, person, id, revision):
         document = self.find_document(person, id)
+        revision = self.find_revision(document, revision)
         if not document:
             return
         body = self.request.get("body")
-        doc = document.fork(author=self.person, body=body)
+        doc = revision.fork(author=self.person, body=body)
         doc.put()
         self.redirect("/" + doc.key().name())
 
@@ -210,12 +221,16 @@ class DocumentHandler(BaseHandler):
 
 application = beaker.middleware.SessionMiddleware(
     WSGIApplication([
-        ("/", HomeHandler),
-        ("/login/?", LoginHandler),
-        ("/(?:%7[Ee]|~)(?P<person>[-_.a-z0-9]{3,32})/?", PersonHandler),
-        ("/(?P<person>)(?P<id>[^~/][^/]{5,})", DocumentHandler),
-        ("/(?:%7[Ee]|~)(?P<person>[-_.a-z0-9]{3,32})/(?P<id>[^/]+)",
+        (r"/", HomeHandler),
+        (r"/login/?", LoginHandler),
+        (r"/(?:%7[Ee]|~)(?P<person>[-_.a-z0-9]{3,32})/?", PersonHandler),
+        (r"/(?P<person>)(?P<id>[^~/][^/]{5,})/?", DocumentHandler),
+        (r"/(?P<person>)(?P<id>[^~/][^/]{5,})"
+         r"/(?P<rev>\d{4}/\d\d/\d\d/\d{6}.\d+)", DocumentHandler),
+        (r"/(?:%7[Ee]|~)(?P<person>[-_.a-z0-9]{3,32})/(?P<id>[^/]+)/?",
          DocumentHandler),
+        (r"/(?:%7[Ee]|~)(?P<person>[-_.a-z0-9]{3,32})/(?P<id>[^/]+)"
+         r"/(?P<rev>\d{4}/\d\d/\d\d/\d{6}.\d+)", DocumentHandler),
     ], debug=True),
     BEAKER_SESSION_OPTIONS
 )
