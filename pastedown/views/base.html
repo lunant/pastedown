@@ -1,21 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>{% block title -%}
              Pastedown &mdash;
              the pastebin service for Markdown documents.
            {%- endblock %}</title>
-    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript">
-    google.load('jquery', '1.4.2');
-    </script>
-    <style type="text/css">
-    header { display: block; text-indent: -9999px; height: 90px;
-             background: url(/etc/images/logo.png) no-repeat; }
-    </style>
+    <script src="http://ajax.microsoft.com/ajax/jQuery/jquery-1.4.2.min.js"
+            type="text/javascript"></script>
+    <link type="text/css" rel="stylesheet" media="screen"
+          href="/etc/stylesheets/style.css" />
   </head>
-  <body>
+  <body class="{% block body_class %}{% endblock %}">
     {% block body %}
       <header>
         <h1>Pastedown</h1>
@@ -46,6 +42,13 @@
       buttons: 'bold italic | link blockquote code image | ol ul heading hr',
       autostart: true
     };
+    (function() {
+      function resize() {
+        this.rows = Math.max(this.value.split('\n').length, this.rows);
+      }
+      $('textarea.markdown').bind({ keyup: resize, keydown: resize,
+                                    keypress: resize });
+    })();
     // ]]>
     </script>
     <script type="text/javascript" src="/etc/wmd/wmd.js"></script>

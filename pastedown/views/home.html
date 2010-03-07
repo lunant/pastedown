@@ -1,41 +1,48 @@
 {% extends "base.html" %}
+{% block body_class -%}
+  home
+{% endblock %}
 {% block content %}
-  <form id="post" method="post" action="">
-    <fieldset>
-      <legend>Post a new document</legend>
-      <textarea name="body" cols="80" rows="10"></textarea>
-      <button type="submit">Post</button>
-    </fieldset>
-  </form>
-  {% if ticket %}
-    <form id="logout" method="delete" action="/login/">
+  <div class="home">
+    <form id="post" method="post" action="">
       <fieldset>
-        <button type="submit">Logout</button>
+        <legend>Post a new document</legend>
+        <textarea name="body" cols="80" rows="10" class="markdown"></textarea>
+        <button type="submit">Post</button>
       </fieldset>
     </form>
-  {% else %}
-    <form id="login" method="post" action="/login/">
-      <fieldset>
-        <legend>VLAAH Login</legend>
-        <label>Login <input type="text" name="name"
-                            value="{{ person.name|escape }}" /></label>
-        <button type="submit">Login</button>
-      </fieldset>
-    </form>
-  {% endif %}
-  {% if documents.count(1) %}
-    <h2>Recently written documents</h2>
-    <ul>
-      {% for document in documents %}
-        {% if document.title %}
-          <li><a href="{{ document|url|escape }}">
-                {{ document|escape }}</a>
-              {% if document.author %}
-                by <a href="{{ document.author|url }}">
-                     {{- document.author.nick|escape -}}</a>
-              {% endif %}</li>
-        {% endif %}
-      {% endfor %}
-    </ul>
-  {% endif %}
+    {% if documents.count(1) %}
+      <h2>Recently written documents</h2>
+      <ul>
+        {% for document in documents %}
+          {% if document.title %}
+            <li><a href="{{ document|url|escape }}">
+                  {{ document|escape }}</a>
+                {% if document.author %}
+                  by <a href="{{ document.author|url }}">
+                       {{- document.author.nick|escape -}}</a>
+                {% endif %}</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+  <aside class="user">
+    {% if ticket %}
+      <form id="logout" method="delete" action="/login/">
+        <fieldset>
+          <button type="submit">Logout</button>
+        </fieldset>
+      </form>
+    {% else %}
+      <form id="login" method="post" action="/login/">
+        <fieldset>
+          <legend>VLAAH Login</legend>
+          <label>Login <input type="text" name="name"
+                              value="{{ person.name|escape }}" /></label>
+          <button type="submit">Login</button>
+        </fieldset>
+      </form>
+    {% endif %}
+  </aside>
 {% endblock %}

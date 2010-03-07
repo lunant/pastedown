@@ -6,6 +6,8 @@ api_version: 1
 handlers:
 - url: /etc/images
   static_dir: pastedown/views/images
+- url: /etc/stylesheets
+  static_dir: pastedown/views/stylesheets
 - url: /etc/wmd
   static_dir: pastedown/views/wmd
 - url: .*

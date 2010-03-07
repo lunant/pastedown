@@ -2,7 +2,10 @@
 {% block title -%}
   {{ document.title|escape }} &mdash; Pastedown
 {%- endblock %}
-{% block content %}
+{% block body_class -%}
+  document
+{%- endblock %}
+{% block body %}
   <article>{{ revision.html }}</article>
   <aside>
     {% if document.parent_document %}
@@ -52,4 +55,18 @@
       </fieldset>
     </form>
   </aside>
+  <footer>
+    <div class="powered-by">
+      <h1><a href="/">Pastedown</a></h1>
+      <p>The pastebin service for
+         <a href="http://daringfireball.net/projects/markdown/">Markdown</a>
+         documents.</p>
+    </div>
+    <p class="copyright">
+      Copyright &copy; 2010 <a href="http://lunant.net/">Lunant</a>.
+      <a href="http://bitbucket.org/lunant/pastedown/">
+        The source code is available</a> under
+      <a href="http://www.gnu.org/licenses/agpl-3.0.html">AGPL</a>.
+    </p>
+  </footer>
 {% endblock %}

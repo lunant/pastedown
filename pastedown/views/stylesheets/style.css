@@ -1,0 +1,23 @@
+body { margin: 0; padding: 0; }
+header { background: black url(/etc/images/home-title.png) no-repeat 15px 15px;
+         display: block; text-indent: -99999px; height: 72px; padding: 15px;
+         margin-bottom: 15px; }
+header * { margin: 0; padding: 0; }
+footer { display: block; background-color: black; color: silver;
+         padding: 15px; margin-top: 15px; font: x-small sans-serif; }
+footer p { margin: 0; }
+footer a { color: white; }
+footer .powered-by h1 { margin: 0; }
+footer .powered-by h1 a { display: block; text-indent: -99999px;
+                          background: black url(/etc/images/logo.png) no-repeat;
+                          width: 309px; height: 19px; }
+footer .powered-by p { text-indent: -99999px; }
+aside.user { position: absolute; top: 15px; right: 15px; }
+aside.user form { margin: 0; padding: 0; }
+aside.user fieldset { margin: 0; padding: 0; border: none; }
+aside.user legend { display: none; }
+aside.user label { color: black; }
+aside.user input { background: white url(/etc/images/vlaah.png) no-repeat;
+                   padding-left: 58px; }
+
+body.home .home { margin: 15px; }
