@@ -1,23 +1,73 @@
-body { margin: 0; padding: 0; }
+body { margin: 0; padding: 0; font-family: sans-serif; }
 header { background: black url(/etc/images/home-title.png) no-repeat 15px 15px;
          display: block; text-indent: -99999px; height: 72px; padding: 15px;
          margin-bottom: 15px; }
 header * { margin: 0; padding: 0; }
 footer { display: block; background-color: black; color: silver;
-         padding: 15px; margin-top: 15px; font: x-small sans-serif; }
+         padding: 15px; margin-top: 15px; font-size: x-small; }
 footer p { margin: 0; }
 footer a { color: white; }
 footer .powered-by h1 { margin: 0; }
 footer .powered-by h1 a { display: block; text-indent: -99999px;
                           background: black url(/etc/images/logo.png) no-repeat;
-                          width: 309px; height: 19px; }
+                          width: 309px; height: 19px; border: none; }
 footer .powered-by p { text-indent: -99999px; }
 aside.user { position: absolute; top: 15px; right: 15px; }
 aside.user form { margin: 0; padding: 0; }
 aside.user fieldset { margin: 0; padding: 0; border: none; }
 aside.user legend { display: none; }
 aside.user label { color: black; }
-aside.user input { background: white url(/etc/images/vlaah.png) no-repeat;
-                   padding-left: 58px; }
+aside.user input.name { background: white url(/etc/images/vlaah.png) no-repeat;
+                        padding-left: 58px; }
 
-body.home .home { margin: 15px; }
+a { text-decoration: none; border-bottom: 1px solid; }
+a:link { color: #666; }
+a:visited { color: #666; border-bottom-style: dashed; }
+a:active { color: black; }
+footer a:link { color: white; }
+footer a:visited { color: white; }
+footer a:active { color: silver; }
+
+fieldset { border: none; margin: 0; padding: 0; }
+legend, button, .home .recent-documents h2, aside .metadata h2
+  { font-weight: bolder; background-color: black; color: white; padding: 15px; }
+legend, .home .recent-documents h2, aside .metadata h2
+  { font-size: x-large; width: 120px; padding: 15px; margin-right: 15px; }
+legend { float: left; }
+button { border: none; display: block; margin-left: 165px;
+         font-size: medium; cursor: pointer; }
+button:hover { background-color: #666; }
+textarea.markdown { font-family: monospace; font-size: medium; }
+
+body.document article { display: block; margin: 15px; line-height: 130%; }
+body.document article h1:first-child, 
+body.document article h1.title { margin: -15px -15px 15px -15px;
+                                 padding: 20px 15px; color: white;
+                                 background-color: black;
+                                 font-family: Georgia, serif; }
+body.document article pre { margin-left: -15px; margin-right: -15px;
+                            padding: 15px; background-color: #efefef;
+                            border-top: 1px solid silver;
+                            border-bottom: 1px solid silver; }
+body.document article code { background-color: #efefef; }
+body.document aside { display: block; margin-top: 15px; padding: 15px;
+                      border-top: 1px solid silver; background-color: #eee; }
+body.document aside form { margin-top: 15px; }
+body.document aside legend,
+body.document aside button,
+body.document aside .metadata h2 { background-color: #666; }
+body.document aside button:hover { background-color: black; }
+body.document footer { margin: 0; }
+
+body.document aside .metadata { margin: 15px 0; min-height: 3.5em; }
+body.document aside .metadata h2,
+.home .recent-documents h2 { position: absolute; margin-top: 0; }
+body.document aside .metadata ul,
+body.document aside .metadata p,
+.home .recent-documents ul { margin-left: 165px; margin-top: 15px; padding: 0;
+                             line-height: 160%; }
+body.document aside .metadata ul li,
+.home .recent-documents ul li { display: block; margin: 0; }
+body.document aside .parent { margin-bottom: 15px; }
+
+body.home .home { margin: 15px; line-height: 130%; }

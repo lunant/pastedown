@@ -201,7 +201,7 @@ class DocumentHandler(BaseHandler):
         document.body = self.request.get("body")
         self.get(person, id, document=document)
 
-    def post(self, person, id, revision):
+    def post(self, person, id, revision=None):
         document = self.find_document(person, id)
         revision = self.find_revision(document, revision)
         if not document:

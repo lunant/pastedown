@@ -9,30 +9,43 @@
   <article>{{ revision.html }}</article>
   <aside>
     {% if document.parent_document %}
-      <p>It forks <a href="{{ document.parent_document|url|escape }}">
-         {{ document.parent_revision.title }}</a>.</p>
+      <div class="parent metadata">
+        <h2>Parent</h2>
+        <p>It forks <a href="{{ document.parent_document|url|escape }}">
+           {{ document.parent_revision.title }}</a>.</p>
+      </div>
     {% endif %}
     {% if document.forks.count(1) %}
-      <ul class="forks">
-        {% for fork in document.forks %}
-          <li><a href="{{ fork|url|escape }}">{{ fork.title }}</a></li>
-        {% endfor %}
-      </ul>
+      <div class="forks metadata">
+        <h2>Forks</h2>
+        <ul>
+          {% for fork in document.forks %}
+            <li><a href="{{ fork|url|escape }}">{{ fork.title }}</a>
+                {% if fork.author %} by <a href="{{ fork.author|url|escape }}">
+                                          {{ fork.author.nick|escape }}
+                                          </a>{% endif %}</li>
+          {% endfor %}
+        </ul>
+      </div>
     {% endif %}
     {% if document.revisions.count(2) > 1 %}
-      <ul class="history">
-        {% for rev in document.revisions: %}
-          <li><a href="{{ rev|url|escape }}">{{ rev.created_at }}</a>
-              by <a href="{{ rev.author|url|escape }}">
-              {{ rev.author.nick|escape }}</a></li>
-        {% endfor %}
-      </ul>
+      <div class="history metadata">
+        <h2>History</h2>
+        <ul>
+          {% for rev in document.revisions: %}
+            <li><a href="{{ rev|url|escape }}">{{ rev.created_at }}</a>
+                {% if rev.author %} by <a href="{{ rev.author|url|escape }}">
+                                        {{ rev.author.nick|escape }}
+                                       </a>{% endif %}</li>
+          {% endfor %}
+        </ul>
+      </div>
     {% endif %}
     {% if document.is_modifiable(person) %}
       <form method="put" action="{{ document|url|escape }}" class="update">
         <fieldset>
           <legend>Update the document</legend>
-          <textarea name="body" rows="10" cols="80">
+          <textarea name="body" rows="10" cols="80" class="markdown">
             {{- revision.body|escape -}}
           </textarea>
           <button type="submit">Update</button>
@@ -48,7 +61,7 @@
     <form method="post" action="" class="fork">
       <fieldset>
         <legend>Fork the document</legend>
-        <textarea name="body" rows="10" cols="80">
+        <textarea name="body" rows="10" cols="80" class="markdown">
           {{- revision.body|escape -}}
         </textarea>
         <button type="submit">Fork</button>
