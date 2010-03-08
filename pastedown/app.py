@@ -127,6 +127,9 @@ class LoginHandler(BaseHandler):
             ticket = person.tickets.create(destination=return_to)
             memcache.set(key, ticket.id, 3600, namespace=ns)
             self.redirect(ticket.url)
+        else:
+            back += ("&" if "?" in back else "?") + "__login_error__=1"
+            self.redirect(back)
 
     def delete(self):
         back = self.request.get("destination", self.request.referer or "/")

@@ -43,24 +43,37 @@
           <label>Login <input type="text" name="name" class="name"
                               maxlength="32"
                               value="{{ person.name|escape }}" /></label>
+          {% if handler.request.get('__login_error__') %}
+            <p class="error">Incorrect login.</p>
+          {% endif %}
+          <input type="hidden" name="destination"
+                 value="{{ handler.request.uri|remove_query('__login_error__')
+                                              |escape }}" />
           <input type="submit" value="Login" />
         </fieldset>
       </form>
       <script type="text/javascript">
       // <![CDATA[
-      $('form#login').submit(function() {
+      (function() {
         var name = $('form#login input[name=name]').get(0);
-        var val = name.value = $.trim(name.value);
-        if (val == '') {
-          window.alert('Fill the login name.');
-        } else if (!val.match(/^~?[-_.a-z0-9]{3,32}$/i)) {
-          window.alert('Invalid VLAAH login name.');
-        } else {
-          return;
+        if (location.search.match(/(\?|&)__login_error__=[^&]+(&|$)/)) {
+          $('form#login .error').remove();
+          window.alert('Incorrect login.');
+          name.focus();
         }
-        name.focus();
-        return false;
-      });
+        $('form#login').submit(function() {
+          var val = name.value = $.trim(name.value);
+          if (val == '') {
+            window.alert('Fill the login name.');
+          } else if (!val.match(/^~?[-_.a-z0-9]{3,32}$/i)) {
+            window.alert('Invalid VLAAH login name.');
+          } else {
+            return;
+          }
+          name.focus();
+          return false;
+        });
+      })();
       // ]]>
       </script>
     {% endif %}

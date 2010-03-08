@@ -1,3 +1,4 @@
+import re
 import os.path
 import jinja2
 import vlaah
@@ -24,4 +25,8 @@ def url(value):
         return url(value.document) + dt
     elif isinstance(value, vlaah.Person):
         return "/" + value.name + "/"
+
+@filter
+def remove_query(value, name):
+    return re.sub(r"(\?|&)%s=[^&]*(&|$)" % name, r"\1", value)
 
