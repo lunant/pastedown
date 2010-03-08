@@ -149,6 +149,9 @@ class PersonHandler(BaseHandler):
 class DocumentHandler(BaseHandler):
     REVISION_PATTERN = re.compile(r"^(\d{4})/(\d\d)/(\d\d)/"
                                   r"(\d\d)(\d\d)(\d\d)\.(\d+)$")
+    HTML_MIMES = "text/html", "application/xhtml+xml"
+    TEXT_MIMES = "text/plain", "text/x-markdown"
+    MIMES = TEXT_MIMES + HTML_MIMES
 
     def find_document(self, person, id):
         """Finds the document. Responds as 404 when the document is not
@@ -188,11 +191,20 @@ class DocumentHandler(BaseHandler):
         return True
 
     def get(self, person, id, revision=None, document=None):
+        self.response.headers["Vary"] = "Accept"
         document = document or self.find_document(person, id)
         revision = self.find_revision(document, revision)
         if document:
-            self.render("document.html",
-                        document=document, revision=revision)
+            mime = self.request.accept.best_match(self.MIMES)
+            if not mime:
+                self.error(406)
+                return
+            self.response.headers["Content-Type"] = mime + "; charset=utf-8"
+            if mime in self.HTML_MIMES:
+                self.render("document.html",
+                            document=document, revision=revision)
+            elif mime in self.TEXT_MIMES:
+                self.response.out.write(revision.body.encode("utf-8"))
 
     def put(self, person, id):
         document = self.find_document(person, id)
