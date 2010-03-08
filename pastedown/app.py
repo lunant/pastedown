@@ -149,8 +149,8 @@ class PersonHandler(BaseHandler):
 class DocumentHandler(BaseHandler):
     REVISION_PATTERN = re.compile(r"^(\d{4})/(\d\d)/(\d\d)/"
                                   r"(\d\d)(\d\d)(\d\d)\.(\d+)$")
-    HTML_MIMES = "text/html", "application/xhtml+xml"
-    TEXT_MIMES = "text/plain", "text/x-markdown"
+    HTML_MIMES = "text/html",
+    TEXT_MIMES = "text/x-markdown", "text/plain"
     MIMES = TEXT_MIMES + HTML_MIMES
 
     def find_document(self, person, id):
@@ -202,7 +202,8 @@ class DocumentHandler(BaseHandler):
             self.response.headers["Content-Type"] = mime + "; charset=utf-8"
             if mime in self.HTML_MIMES:
                 self.render("document.html",
-                            document=document, revision=revision)
+                            document=document, revision=revision,
+                            mime=mime, xhtml=mime == "application/xhtml+xml")
             elif mime in self.TEXT_MIMES:
                 self.response.out.write(revision.body.encode("utf-8"))
 
