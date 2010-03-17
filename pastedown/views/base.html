@@ -33,8 +33,13 @@
         </p>
       </footer>
     {% endblock %}
+    <script type="text/javascript" src="http://vlaah-embed.appspot.com/init.js">
+    </script>
     <script type="text/javascript">
     // <![CDATA[
+    $('article h1').append('<div id="vlaah-candybar"></div>');
+    vlaahEmbed.append(location.href, 'vlaah-candybar', false,
+                      'rotten_clover', 'rotten_tomato', false);
     $('form[method=put], form[method=delete]').append(function() {
       var attr = this.getAttribute('method');
       return '<input type="hidden" name="__method__" value="' + attr + '" />';
