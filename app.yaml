@@ -8,6 +8,8 @@ handlers:
   static_dir: pastedown/views/images
 - url: /etc/stylesheets
   static_dir: pastedown/views/stylesheets
+- url: /etc/javascripts
+  static_dir: pastedown/views/javascripts
 - url: /favicon.ico
   static_files: pastedown/views/files/favicon.ico
   upload: pastedown/views/files/favicon.ico
