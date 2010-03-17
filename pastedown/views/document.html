@@ -5,6 +5,17 @@
 {% block body_class -%}
   document
 {%- endblock %}
+{% block script %}
+<script type="text/javascript" src="http://vlaah-embed.appspot.com/init.js">
+</script>
+<script type="text/javascript">
+// <![CDATA[
+$('article h1').append('<div id="vlaah-candybar"></div>');
+vlaahEmbed.append(location.href, 'vlaah-candybar', false,
+                  'rotten_clover', 'rotten_tomato', false);
+// ]]>
+</script>
+{% endblock %}
 {% block body %}
   <article>{{ revision.html }}</article>
   <aside>
