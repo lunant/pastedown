@@ -51,6 +51,8 @@ body.document article pre { margin-left: -15px; margin-right: -15px;
                             border-top: 1px solid silver;
                             border-bottom: 1px solid silver; }
 body.document article code { background-color: #efefef; }
+body.document article blockquote pre,
+body.document article ul pre { margin-left: 0; border-left: 1px solid silver; }
 body.document aside { display: block; margin-top: 15px; padding: 15px;
                       border-top: 1px solid silver; background-color: #eee; }
 body.document aside form { margin-top: 15px; }
