@@ -73,5 +73,9 @@ body.document aside .metadata ul li,
 .home .recent-documents ul li { display: block; margin: 0; }
 body.document aside .parent { margin-bottom: 15px; }
 
+body .person { margin-left: 15px; }
+body .person ul.documents { margin-left: 143px; margin-top: -128px;
+                            min-height: 128px; line-height: 130%; }
+
 body.home .home { margin: 15px; line-height: 130%; }
 #vlaah-candybar { float: right; width: 120px; margin: 10px 0; }

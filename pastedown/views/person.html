@@ -5,6 +5,8 @@
 {% block content %}
   <div class="person">
     <h2>{{ author.nick|escape }} (<code>{{ author.name|escape }}</code>)</h2>
+    <img src="{{ author.picture_url|escape }}" class="picture"
+         width="128" height="128" alt="" />
     <ul class="documents">
       {% for doc in documents %}
         <li><a href="{{ doc|url|escape }}">{{ doc|escape }}</a></li>
