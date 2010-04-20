@@ -11,7 +11,7 @@
         <button type="submit">Post</button>
       </fieldset>
     </form>
-    {% if documents.count(1) %}
+    {% if documents|length > 0 %}
       <div class="recent-documents">
         <h2>Recently written documents</h2>
         <ul>

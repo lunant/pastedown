@@ -76,9 +76,12 @@ class BaseHandler(webapp.RequestHandler):
 
 class HomeHandler(BaseHandler):
 
+    NUMBER_TO_FETCH = 10
+
     def get(self):
         docs = Document.all().filter("updated_at != ", None) \
-                             .order("-updated_at")
+                             .order("-updated_at") \
+                             .fetch(self.NUMBER_TO_FETCH)
         self.render("home.html", documents=docs)
 
     def post(self):
