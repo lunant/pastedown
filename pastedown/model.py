@@ -7,23 +7,10 @@ from google.appengine.ext import db
 import markdown2
 import vlaah
 import vlaah.gae.db as vdb
+import pastedown
 
 
-def vlaah_session(file=None):
-    """Creates a VLAAH session instance."""
-    import ConfigParser
-    from os.path import join, dirname
-    conf = ConfigParser.ConfigParser()
-    conf.read(file or join(dirname(__file__), "vlaah_session.ini"))
-    try:
-        settings = conf.items("vlaah_session")
-    except ConfigParser.NoSectionError:
-        raise IOError("copy pastedown/vlaah_session.ini.dist to "
-                      "pastedown/vlaah_session.ini")
-    return vlaah.Session(**dict(settings))
-
-
-VLAAH = vlaah_session()
+VLAAH = pastedown.vlaah_session()
 MARKDOWN = markdown2.Markdown(extras=["footnotes"])
 
 

@@ -6,6 +6,8 @@ from google.appengine.api import memcache
 import beaker.middleware
 import jinja2
 import vlaah
+from recaptcha.client import captcha
+import pastedown
 from pastedown.model import *
 from pastedown.appext import WSGIApplication
 from pastedown.template import ENVIRONMENT as VIEW_ENV
@@ -27,6 +29,14 @@ def _session_setter(name, map):
         else:
             self.session[name] = map(value)
     return fset
+
+
+def captcha_submit(request):
+    """Submits the CAPTCHA input."""
+    return captcha.submit(request.get("recaptcha_challenge_field", ""),
+                          request.get("recaptcha_response_field", ""),
+                          pastedown.configuration("recaptcha")["private_key"],
+                          request.remote_addr)
 
 
 class BaseHandler(webapp.RequestHandler):
@@ -78,16 +88,23 @@ class HomeHandler(BaseHandler):
 
     NUMBER_TO_FETCH = 10
 
-    def get(self):
+    def get(self, body=None, captcha_response=None):
         docs = Document.all().filter("updated_at != ", None) \
                              .order("-updated_at") \
                              .fetch(self.NUMBER_TO_FETCH)
-        self.render("home.html", documents=docs)
+        self.render("home.html", documents=docs,
+                                 body=body,
+                                 captcha_response=captcha_response)
 
     def post(self):
         """Post a new document."""
         person = self.person
-        doc = Document(author=self.person, body=self.request.get("body"))
+        body = self.request.get("body")
+        if not person:
+            response = captcha_submit(self.request)
+            if not response.is_valid:
+                return self.get(body=body, captcha_response=response)
+        doc = Document(author=self.person, body=body)
         doc.put()
         self.redirect("/" + doc.key().name())
 
@@ -196,7 +213,9 @@ class DocumentHandler(BaseHandler):
             return False
         return True
 
-    def get(self, person, id, revision=None, document=None):
+    def get(self, person, id,
+            revision=None, document=None,
+            forking_body=None, captcha_response=None):
         self.response.headers["Vary"] = "Accept"
         document = document or self.find_document(person, id)
         revision = self.find_revision(document, revision)
@@ -209,7 +228,9 @@ class DocumentHandler(BaseHandler):
             if mime in self.HTML_MIMES:
                 self.render("document.html",
                             document=document, revision=revision,
-                            mime=mime, xhtml=mime == "application/xhtml+xml")
+                            mime=mime, xhtml=mime == "application/xhtml+xml",
+                            forking_body=forking_body,
+                            captcha_response=captcha_response)
             elif mime in self.TEXT_MIMES:
                 self.response.out.write(revision.body.encode("utf-8"))
 
@@ -226,7 +247,13 @@ class DocumentHandler(BaseHandler):
         if not document:
             return
         body = self.request.get("body")
-        doc = revision.fork(author=self.person, body=body)
+        author = self.person
+        if not author:
+            response = captcha_submit(self.request)
+            if not response.is_valid:
+                return self.get(person, id,
+                                forking_body=body, captcha_response=response)
+        doc = revision.fork(author=author, body=body)
         doc.put()
         self.redirect("/" + doc.key().name())
 

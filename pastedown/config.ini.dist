@@ -1,0 +1,6 @@
+[vlaah]
+appkey = your_application_key_goes_here
+
+[recaptcha]
+public_key = your_public_key
+private_key = your_private_key

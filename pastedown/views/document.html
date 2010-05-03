@@ -73,8 +73,11 @@ vlaahEmbed.append(location.href, 'vlaah-candybar', false,
       <fieldset>
         <legend>Fork the document</legend>
         <textarea name="body" rows="10" cols="80" class="markdown">
-          {{- revision.body|escape -}}
+          {{- forking_body or revision.body|escape -}}
         </textarea>
+        {% if not person %}
+          {{ recaptcha(captcha_response or None) }}
+        {% endif %}
         <button type="submit">Fork</button>
       </fieldset>
     </form>

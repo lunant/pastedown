@@ -79,3 +79,5 @@ body .person ul.documents { margin-left: 143px; margin-top: -128px;
 
 body.home .home { margin: 15px; line-height: 130%; }
 #vlaah-candybar { float: right; width: 120px; margin: 10px 0; }
+
+#recaptcha_widget_div { margin-left: 165px; }

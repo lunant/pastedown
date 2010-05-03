@@ -3,7 +3,8 @@ vlaah
 jinja2
 beaker
 markdown2.py
-pastedown/vlaah_session.ini
+recaptcha
+pastedown/config.ini
 .DS_Store
 *.pyc
 *.swp

@@ -7,7 +7,12 @@
     <form id="post" method="post" action="">
       <fieldset>
         <legend>Post a new document</legend>
-        <textarea name="body" cols="80" rows="10" class="markdown"></textarea>
+        <textarea name="body" cols="80" rows="10" class="markdown">
+          {{- body or '' -}}
+        </textarea>
+        {% if not person %}
+          {{ recaptcha(captcha_response or None) }}
+        {% endif %}
         <button type="submit">Post</button>
       </fieldset>
     </form>
