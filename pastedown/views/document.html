@@ -43,7 +43,7 @@ vlaahEmbed.append(location.href, 'vlaah-candybar', false,
       <div class="history metadata">
         <h2>History</h2>
         <ul>
-          {% for rev in document.revisions: %}
+          {% for rev in document.revisions.fetch(3): %}
             <li><a href="{{ rev|url|escape }}">{{ rev.created_at }}</a>
                 {% if rev.author %} by <a href="{{ rev.author|url|escape }}">
                                         {{ rev.author.nick|escape }}

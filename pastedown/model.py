@@ -206,11 +206,25 @@ class Revision(db.Model):
 class RevisionSet(object):
     """The set of revisions."""
 
-    def __init__(self, document):
+    __slots__ = "document", "offset", "limit"
+
+    def __init__(self, document, limit=None, offset=0):
         if not isinstance(document, Document):
             typename = type(document).__name__
             raise TypeError("expected a Document instance, not " + typename)
+        elif limit is not None and not isinstance(limit, (int, long)):
+            typename = type(limit).__name__
+            raise TypeError("limit must be an integer, not " + typename)
+        elif not isinstance(offset, (int, long)):
+            typename = type(offset).__name__
+            typename = type("offset must be an integer, not " + typename)
+        elif limit is not None and limit < 0:
+            raise ValueError("limit must be greater than zero")
+        elif offset < 0:
+            raise ValueError("offset must be greater than zero")
         self.document = document
+        self.offset = offset
+        self.limit = limit
 
     def query_hierarchy(self):
         document = self.document
@@ -228,13 +242,24 @@ class RevisionSet(object):
     def count(self, limit=None):
         """Returns the number of revisions in the set."""
         cnt = 0
+        if limit is None:
+            limit = self.limit
+        elif self.limit is not None:
+            limit = min(self.limit, limit)
+        limit += self.offset
         if limit is not None and limit <= 0:
             return 0
         for revision_set in self.query_hierarchy():
             cnt += revision_set.count(limit or 1000)
             if limit is not None and limit - cnt <= 0:
-                return cnt
-        return cnt
+                return cnt - self.offset
+        return cnt - self.offset
+
+    def fetch(self, limit, offset=0):
+        """Returns a new RevisionSet instance with limitation."""
+        if self.limit is not None:
+            limit = min(self.limit - offset, limit)
+        return type(self)(self.document, limit, self.offset + offset)
 
     def __getitem__(self, key):
         """Finds the revision by the created time or the offset number."""
@@ -244,21 +269,35 @@ class RevisionSet(object):
                     return revision
             raise KeyError("no revision created at %r" % key)
         elif isinstance(key, (int, long)):
-            if key < 0:
-                cnt = self.count() + key
-            for revision_set in self.query_hierarchy():
-                cnt = revision_set.count(key + 1)
-                if cnt > key:
-                    return revision_set.fetch(1, key)[0]
-                key -= cnt
+            k = key + self.offset
+            if k < self.limit:
+                if k < 0:
+                    cnt = self.count() + k
+                for revision_set in self.query_hierarchy():
+                    cnt = revision_set.count(k + 1)
+                    if cnt > k:
+                        return revision_set.fetch(1, k)[0]
+                    k -= cnt
             raise IndexError("set index out of range %r" % key)
         raise TypeError("key must be a datetime.date, datetime.datetime, "
                         "int or long instance, not " + type(key).__name__)
 
     def __iter__(self):
+        limit = self.limit
+        if limit is not None and limit < 1:
+            return
+        offset = self.offset
+        i = 0
         for revision_set in self.query_hierarchy():
+            if limit is not None and limit < 1:
+                break
+            if limit is not None:
+                revision_set = revision_set.fetch(limit)
+                limit -= len(revision_set)
             for revision in revision_set:
-                yield revision
+                if i >= offset:
+                    yield revision
+                i += 1
 
     def __len__(self):
         return self.count()
