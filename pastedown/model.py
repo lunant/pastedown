@@ -146,6 +146,12 @@ class Document(db.Model):
             del self._body_text
         return key
 
+    def delete(self):
+        for fork in self.forks:
+            fork.parent_document = fork.parent_revision = None
+            fork.put()
+        return db.Model.delete(self)
+
     def __unicode__(self):
         return self.title or u""
 
