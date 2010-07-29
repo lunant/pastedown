@@ -1,5 +1,5 @@
 markdown2 http://python-markdown2.googlecode.com/svn/trunk/lib/markdown2.py
 vlaah http://bitbucket.org/lunant/vlaah-gae/get/tip.tar.gz
-jinja2 http://pypi.python.org/packages/source/J/Jinja2/Jinja2-2.2.1.tar.gz
+jinja2 http://pypi.python.org/packages/source/J/Jinja2/Jinja2-2.5.tar.gz
 beaker http://bitbucket.org/bbangert/beaker/get/v1.5.tar.gz
 recaptcha http://pypi.python.org/packages/source/r/recaptcha-client/recaptcha-client-1.0.5.tar.gz
