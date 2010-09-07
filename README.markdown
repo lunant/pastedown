@@ -78,7 +78,7 @@ computer on the Google App Engine development server -- [dev_appserver.py][].
 Author and license
 ------------------
 
-Written by Hong MinHee <http://dahlia.kr/>.  
+Written by Hong Minhee <http://dahlia.kr/>.  
 Copyright 2010 [Lunant][].  
 The source code is available under [AGPL][].  
 
