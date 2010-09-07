@@ -55,7 +55,7 @@ their website if they have a Google account.
 Lastly, you should resolve dependencies. Following command downloads depending
 libraries automatically. (Google App Engine doesn't support [setuptools][],
 [distribute][], [virtualenv][] or any other similar tools, so we should resolve
-dependencies by ourself.)
+dependencies by ourselves.)
 
     $ cd pastedown/
     pastedown$ python setup.py download_libs
