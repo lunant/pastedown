@@ -8,3 +8,4 @@ pastedown/config.ini
 .DS_Store
 *.pyc
 *.swp
+*~

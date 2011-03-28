@@ -21,13 +21,13 @@ class Document(db.Model):
 
     parent_document = db.SelfReferenceProperty(collection_name="forks")
     parent_revision = db.ReferenceProperty()
-    author = vdb.PersonProperty(VLAAH, indexed=True)
+    author = db.StringProperty(indexed=True)
     updated_at = db.DateTimeProperty(auto_now=True)
 
     @classmethod
     def create_key_name(cls, person=None, id=None):
         """Creates a new unique key_name for documents."""
-        person_name = person.name + "/" if person else ""
+        person_name = person + "/" if person else ""
         if isinstance(id, basestring):
             return person_name + id
         elif not callable(id) and id is not None:
@@ -50,10 +50,7 @@ class Document(db.Model):
     @classmethod
     def get_by_author(cls, author):
         """Returns documents written by the author."""
-        if isinstance(author, vlaah.Person):
-            return cls.all().filter("author = ", author.name)
-        typename = type(author).__name__
-        raise TypeError("author must be a Person instance, not " + typename)
+        return cls.all().filter("author = ", author)
 
     @classmethod
     def find(cls, author, id):

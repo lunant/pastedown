@@ -161,10 +161,7 @@ class LoginHandler(BaseHandler):
 class PersonHandler(BaseHandler):
 
     def get(self, person):
-        author = VLAAH.find("~" + person)
-        if not isinstance(author, vlaah.Person):
-            self.error(404)
-            return
+        author = "~" + person
         documents = Document.get_by_author(author)
         self.render("person.html", author=author, documents=documents)
 
@@ -181,13 +178,7 @@ class DocumentHandler(BaseHandler):
         found.
 
         """
-        if person:
-            person = VLAAH.find("~" + person)
-            if not isinstance(person, vlaah.Person):
-                self.error(404)
-                return
-        else:
-            person = None
+	person = '~' + person
         document = Document.find(person, id)
         if not document:
             self.error(404)
